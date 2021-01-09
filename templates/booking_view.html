@@ -1,0 +1,143 @@
+{% extends 'base.html'%} {% block head %} {% endblock head %} {% block body %}
+{% load static %}
+<div id="app">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="card mb-3">
+          <img
+            class="card-img-top"
+            src="{{MEDIA_URL}}/media/{{data.image}}"
+            alt="Card image cap"
+          />
+          <div class="card-body">
+            <h5 class="card-title my-3">{{data.name}}</h5>
+            <p class="card-text">Category : {{data.category}}</p>
+            <p class="card-text">Avg price : {{data.price}} /-</p>
+            <p class="card-text">Avg ratings : {{data.ratings}}</p>
+          </div>
+        </div>
+        <div class="form-group mx-sm-3 mb-2">
+          <!-- Date input -->
+          <label class="control-label" for="date">Date</label>
+          <input
+            class=""
+            id="date"
+            name="date"
+            placeholder="DD-MM-YYYY"
+            type="text"
+            v-model="date"
+          />
+          <input id="datesubmit" type="submit" @click="datepicked" />
+        </div>
+      </div>
+        <div class='container'>
+
+          <div class="col-10">
+            <div v-if="submit">
+              
+              <div v-for="(n,index) in 12" :key="index" class='row bg-dark my-3' >
+                <button class="col-3 my-3 btn btn-danger" disabled :id="[[9+n]]" > [[n+9]] - [[n+10]]</button>
+                
+                <div v-for="(m,index1) in {{data.tables}}" :key="index1" class='col mx-0.5 my-auto'>
+                <button v-if="(slotsBooked.includes(n+9)) && (timeslots[n+9].includes(m))" class="btn btn-danger" :id='[[m]]' style="margin:auto">[[m]]</button> 
+                <button v-else class="btn btn-success" style="margin:auto"  :id='[[m]]'>[[m]]</button> 
+
+              </div>
+            </div>
+          </div>
+        </div>
+  </div>
+
+    {% comment %} Shifting div to show the avialble slots {% endcomment %}
+    <div id="slotpick" class="container" style="display: none">
+      <div class="flex row">
+        <div v-for="(n,index) in {{data.tables}}" :key="index" class="col">
+
+          <button
+            {% comment %} v-if="filledSlots.includes(n)" {% endcomment %}
+            class="btn btn-danger"
+            disabled
+            :id="n"
+          >
+            [[n]]
+          </button>
+          {% comment %} <button v-else class="btn btn-success" :id="n">[[n]]</button> {% endcomment %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  {% endblock body %} {% block script %}
+  
+  <script>
+    new Vue({
+      el: "#app",
+      delimiters : ['[[',']]'],
+      data: {
+        date: "",
+        timeslots : {},
+        slotsBooked : [],
+        submit: false,
+      },
+
+      methods:{
+         datepicked: function(){
+          let today = new Date();
+          var dd = String(today.getDate()).padStart(2, '0');
+          var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+          var yyyy = today.getFullYear();
+
+          date = String(this.date)
+
+          date = date.split('-')
+
+          if (date[2] >= yyyy){
+              if(date[1] >= mm){
+                  if(date[0] >= dd){
+                          date = `${date[0]}-${date[1]}-${date[2]}`
+                          console.log(date)
+                          this.timeslots = 
+                          this.fetchTime(date)
+                          this.submit = true
+                      }
+                  }
+               }
+               else{
+              $( "#btn-warn" ).remove();
+            $( "<p id='btn-warn' class='p-3 mb-2 bg-danger text-white mx-2 my-3'>Only future bookings!!</p>" ).insertAfter( "#datesubmit" );
+               }
+
+            },
+
+              async fetchTime(date){
+              $( "#btn-warn" ).remove();
+
+                restaurent = {{data.id}};
+
+                  const res = await fetch(`http://localhost:8000/restaurants/timeslot/${date}/${restaurent}`);
+                  const data = await res.json();
+
+                  this.timeslots ={}
+
+                  for (const obj in data){
+                      if (this.timeslots[data[obj].time__time_slots]){
+                          this.timeslots[data[obj].time__time_slots].push(data[obj].table)
+                      }
+                      else{
+                          this.timeslots[data[obj].time__time_slots] = [(data[obj].table)]
+                          this.slotsBooked.push(data[obj].time__time_slots)
+                      }
+                  }
+
+                for(const slots in this.timeslots){
+                  console.log(this.timeslots[slots])
+                } console.log(this.slotsBooked)
+            }   
+      }
+
+    });
+  </script>
+  {% endblock script %}
+</div>

@@ -1,0 +1,62 @@
+{% extends 'base.html'%} 
+{% load static %}
+
+{% block body %}
+
+<div id="app">
+     <div class='row'>
+        <div class='col-9'>
+            <div v-for="resta in restaurants" :key="resta.id">
+         <div class="card mb-3" >
+        <img class="card-img-top" 
+            :src="{{MEDIA_URL}} [[resta.image]]" 
+            @click=getRestaurent([[resta.id]])>
+        <div class="card-body" >
+            <h5 class="card-title my-3"> [[resta.name]]</h5>
+            <p class="card-text">  Category :  [[resta.category]]</p>
+            <p class="card-text">  Average Price :  [[resta.price]]</p>
+            <p class="card-text">  Average rating :  [[resta.ratings]]</p>
+        </div>
+        </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}
+
+{% block script %}
+<script>
+var app = new Vue({
+    el : '#app',
+    delimiters : ['[[',']]'],
+    data : {
+        restaurants : [],
+    },
+
+    created:function(){
+        var self = this
+        fetch('http://localhost:8000/restaurants/')
+        .then(response => response.json())
+        .then(data => self.restaurants = data)
+    },
+
+   mounted: function() {
+       var self = this
+   },
+
+   methods: {
+       getRestaurent: function(event){
+            event = event[0]
+            window.location.href = `http://localhost:8000/frontend/booking/${event}/`;
+
+       }    
+   },
+})
+
+
+</script>
+{% endblock script %}
+
+
+
