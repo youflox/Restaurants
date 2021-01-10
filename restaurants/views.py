@@ -78,8 +78,12 @@ class TimeSlotsView(APIView):
         ).values_list('id', flat=True)
        
         if date:
-            query = TablesModel.objects.select_related('time', 'time__date').values('time', 'time__date').filter(time__date__in=date).values('table', slots=F('time__slots'))    
+            query = (TablesModel.objects.select_related('time', 'time__date')
+                        .values('time', 'time__date').filter(time__date__in=date)
+                        .values('table', slots=F('time__slots')))
+
             # query = TablesModel.objects.all().prefetch_related('time').filter(time__date=date.id).values('table', slots=F('time__slots'))          
+            
             serializer  = self.serializer_class(query, many=True)
             data = serializer.data        
         else:
@@ -114,12 +118,29 @@ class TablesView(APIView):
     serializer_class = TablesSerializer
 
     def get(self, request,date, restaurent, time):
-        data = TablesModel.objects.select_related('time').values('table').filter(time__slots = time)
+        # data = TablesModel.objects.select_related('time').values('table').filter(time__slots = time)
 
-        print(data)
+        date = DateModel.objects.filter(
+            Q(date=date) &
+            Q(restaurant = restaurent)
+        ).values_list('id', flat=True)
+       
+        if date:
+            query = (TablesModel.objects.select_related('time', 'time__date')
+                        .values('time', 'time__date')
+                        .filter(time__date__in=date)
+                        .filter(time__slots=time)
+                        # .filter(time=time)
+                        .values('table', slots=F('time__slots')))
+            
+            print(query)
 
-        serializer = self.serializer_class(data, many=True)
-        return Response(serializer.data)    
+            serializer = self.serializer_class(query, many=True)
+
+            data = serializer.data        
+        else:
+            data = {'Response' : 'No records found'}
+        return Response(data)
     
 
 #Create a new Booking
