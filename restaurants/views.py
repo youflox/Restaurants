@@ -109,8 +109,18 @@ class NewBooking(APIView):
     """
     serializer_class = NewBookingSerializer
 
-    def post(self, request):        
-        req =request.data
-        serializer = self.serializer_class(req)
-        return Response(serializer.data)
+    def post(self, request):
+
+        data =request.data
+        
+        serializer = self.serializer_class(data)
+
+        # serializer.is_valid(serializer.data)
+
+        print(data)
+
+        if serializer.is_valid:
+            serializer.save(instance=request.user.id, validated_data=serializer.data)
+            return Response({"msg":"201 created"})
+        
         # return Response({'msg':req})

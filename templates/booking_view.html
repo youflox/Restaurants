@@ -37,8 +37,6 @@
           <input id="datesubmit" type="submit" @click="datepicked" />
         </div>
       </div>
-      [[slotsBooked]]
-      [[timeslots]]
         <div class='container'>
 
           <div class="col-10">
@@ -48,7 +46,7 @@
                 
                 <div v-for="(m,index1) in {{data.tables}}" :key="index1" class='col mx-0.5 my-auto'>
                 <button v-if="(slotsBooked.includes(n+9)) && (timeslots[n+9].includes(m))" class="btn btn-danger" :id='[[m]]' disabled style="margin:auto">[[m]]</button> 
-                <button v-else class="btn btn-success" style="margin:auto"  :id='[[m]]' @click="newBooking([[n+9]],[[m]])" >[[m]]</button> 
+                <button v-else class="btn btn-success" style="margin:auto"  :id='[[m]]' @click="newBooking([[m]],[[n+9]])" >[[m]]</button> 
 
               </div>
             </div>
@@ -79,7 +77,6 @@
   </div>
    </div>
   </div>
-
   {% endblock body %} {% block script %}
   
   <script>
@@ -125,39 +122,50 @@
             // Function to Post new booking data to Django 
             newBooking: function(table, timeSlot){
 
-              table = parseInt(table[0])
-              slot  = parseInt(timeSlot[0])
+             
 
-              console.log(table,slot, this.date, this.restaurantId)
+              var booking = window.confirm("Would like to conifrm the booking?");
 
-              let $crf_token = $('[name="csrfmiddlewaretoken"]').attr('value');
+              if (booking) {
 
-              data  = {
-                table       : table,
-                date        : this.date,
-                timeslot    : slot,
-                restaurant  : this.restaurantId,
+                table = parseInt(table[0])
+                slot  = parseInt(timeSlot[0])
+
+                console.log(table,slot, this.date, this.restaurantId)
+
+                let $crf_token = $('[name="csrfmiddlewaretoken"]').attr('value');
+
+                data  = {
+                  table       : table,
+                  date        : this.date,
+                  slots       : slot,
+                  restaurant  : this.restaurantId,
+                }
+                console.log(data)
+                fetch(`http://localhost:8000/restaurants/booking/`, {
+                    method: 'POST',
+                    headers : new Headers({'content-type' : 'application/json',
+                              'Access-Control-Allow-Origin': "*",
+                              'Access-Control-Allow-Headers' : "*",
+                              "X-CSRFToken": $crf_token,
+                    }),
+
+                    body: JSON.stringify(data),
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                    console.log('Success:', data);
+                  })
+                  .catch((error) => {
+                    console.error('Error:', error);
+                  });
+
+                  this.datepicked()
+
+                      }
+              else {
+                  console.log('canceled')
               }
-
-              fetch(`http://localhost:8000/restaurants/booking/`, {
-                  method: 'POST',
-                   headers : new Headers({'content-type' : 'application/json',
-                            'Access-Control-Allow-Origin': "*",
-                            'Access-Control-Allow-Headers' : "*",
-                            "X-CSRFToken": $crf_token,
-                  }),
-
-                  body: JSON.stringify(data),
-                })
-                .then(response => response.json())
-                .then(data => {
-                  console.log('Success:', data);
-                })
-                .catch((error) => {
-                  console.error('Error:', error);
-                });
-
-
             },
 
               // Function to GET data from the django API
@@ -168,6 +176,8 @@
                   this.restaurantId = {{data.id}};
                   this.timeslots ={};
                   this.slotsBooked = [];
+
+                  console.log(this.restaurantId)
 
                   const res = await fetch(`http://localhost:8000/restaurants/timeslot/${date}/${this.restaurantId}`);
                   const data = await res.json();
