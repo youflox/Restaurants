@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Q
+from django.db.models import F, Q
 
 from rest_framework.response import Response
 from rest_framework.views import APIView 
@@ -17,7 +17,10 @@ from .serializers import (
     RatingSerializer,
     TimeSlotsSeializer,
     TablesSerializer,
+    NewBookingSerializer,
 )
+
+import json
 
 # Create your view here.
 
@@ -36,7 +39,7 @@ class RestaurentRegisterView(APIView):
         user_data = serializer.data
         return Response(user_data)
 
-
+#Lisint all the Restaurants
 class RestaurantView(APIView):
     """
     For listing all the Restaurents.
@@ -54,7 +57,7 @@ class RestaurantView(APIView):
             
         return Response(serializer.data)
 
-
+#Not using 
 class Ratings(APIView):
     serializer_class = RatingSerializer
 
@@ -64,33 +67,50 @@ class Ratings(APIView):
         return Response(serializer.data)
 
 
+
+#  Using This To Render Slots and Table data in Vue
 class TimeSlotsView(APIView):
     serializer_class = TimeSlotsSeializer
 
     def get(self, request, date, restaurent):
-
         date = DateModel.objects.filter(
             Q(date=date) &
-            Q(restaurant_date = restaurent)
-        ).first()      
-
+            Q(restaurant = restaurent)
+        ).values_list('id', flat=True)
+       
         if date:
-            query = TablesModel.objects.all().prefetch_related('time', 'time__date', 'time__date__restaurant_date').filter(time__date=date.id).values('time__time_slots','table')
+            query = TablesModel.objects.select_related('time', 'time__date').values('time', 'time__date').filter(time__date__in=date).values('table', slots=F('time__slots'))    
+            # query = TablesModel.objects.all().prefetch_related('time').filter(time__date=date.id).values('table', slots=F('time__slots'))          
             serializer  = self.serializer_class(query, many=True)
-            data = serializer.data
+            data = serializer.data        
         else:
             data = {'Response' : 'No records found'}
         return Response(data)
 
 class TablesView(APIView):
     """
-    Check filled
+    Check filled tables
     """
-
     serializer_class = TablesSerializer
 
     def get(self, request,date, restaurent, time):
-        data = TablesModel.objects.select_related('time').values('table').filter(time__time_slots = time)
+        data = TablesModel.objects.select_related('time').values('table').filter(time__slots = time)
+
+        print(data)
+
         serializer = self.serializer_class(data, many=True)
         return Response(serializer.data)    
     
+
+#Create a new Booking
+class NewBooking(APIView):
+    """
+    New Booking Post request
+    """
+    serializer_class = NewBookingSerializer
+
+    def post(self, request):        
+        req =request.data
+        serializer = self.serializer_class(req)
+        return Response(serializer.data)
+        # return Response({'msg':req})

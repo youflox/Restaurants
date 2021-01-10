@@ -5,16 +5,16 @@
 
 <div id="app">
      <div class='row'>
-        <div class='col-9'>
-            <div v-for="resta in restaurants" :key="resta.id">
+        <div class='col-9 mx-auto'>
+        <div v-for="resta in restaurants" :key="resta.id" class="col mY-10" style="cursor:pointer;">
          <div class="card mb-3" >
         <img class="card-img-top" 
             :src="{{MEDIA_URL}} [[resta.image]]" 
             @click=getRestaurent([[resta.id]])>
-        <div class="card-body" >
+        <div class="card-body bg-warning" >
             <h5 class="card-title my-3"> [[resta.name]]</h5>
             <p class="card-text">  Category :  [[resta.category]]</p>
-            <p class="card-text">  Average Price :  [[resta.price]]</p>
+            <p class="card-text">  Average Price :  [[resta.price]] /-</p>
             <p class="card-text">  Average rating :  [[resta.ratings]]</p>
         </div>
         </div>

@@ -36,18 +36,18 @@ class RatingModel(models.Model):
 class DateModel(models.Model):
     date            = models.CharField(max_length=50)
     user            = models.ForeignKey(User, on_delete=models.CASCADE,related_name='date_user', blank=True, null=True)
-    restaurant_date = models.ForeignKey(RestaurantModel, related_name='restaurant_date', on_delete=models.CASCADE,blank=True, null=True)
+    restaurant      = models.ForeignKey(RestaurantModel, related_name='restaurant', on_delete=models.CASCADE,blank=True, null=True)
 
     def __str__(self):
-        return self.date
+        return (self.date+ "-"+ str(self.restaurant))
 
 
 class TimeSlotsModel(models.Model):
     date        = models.ForeignKey(DateModel, related_name='slotpicker', on_delete=models.CASCADE, blank=True, null=True)
-    time_slots  = models.CharField(max_length=50)
+    slots  = models.IntegerField()
 
     def __str__(self):
-        return self.time_slots
+        return (str(self.date)+"_"+str(self.slots))
 
 
 class TablesModel(models.Model):

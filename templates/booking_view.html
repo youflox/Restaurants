@@ -1,7 +1,13 @@
-{% extends 'base.html'%} {% block head %} {% endblock head %} {% block body %}
+{% extends 'base.html'%} 
+
+{% block head %}
+{% endblock head %} 
+
+
+{% block body %}
 {% load static %}
 <div id="app">
-  <div class="container">
+  <div>
     <div class="row">
       <div class="col-12">
         <div class="card mb-3">
@@ -21,7 +27,7 @@
           <!-- Date input -->
           <label class="control-label" for="date">Date</label>
           <input
-            class=""
+            class="col-8 mx-4 my-auto"
             id="date"
             name="date"
             placeholder="DD-MM-YYYY"
@@ -31,17 +37,18 @@
           <input id="datesubmit" type="submit" @click="datepicked" />
         </div>
       </div>
+      [[slotsBooked]]
+      [[timeslots]]
         <div class='container'>
 
           <div class="col-10">
             <div v-if="submit">
-              
               <div v-for="(n,index) in 12" :key="index" class='row bg-dark my-3' >
                 <button class="col-3 my-3 btn btn-danger" disabled :id="[[9+n]]" > [[n+9]] - [[n+10]]</button>
                 
                 <div v-for="(m,index1) in {{data.tables}}" :key="index1" class='col mx-0.5 my-auto'>
-                <button v-if="(slotsBooked.includes(n+9)) && (timeslots[n+9].includes(m))" class="btn btn-danger" :id='[[m]]' style="margin:auto">[[m]]</button> 
-                <button v-else class="btn btn-success" style="margin:auto"  :id='[[m]]'>[[m]]</button> 
+                <button v-if="(slotsBooked.includes(n+9)) && (timeslots[n+9].includes(m))" class="btn btn-danger" :id='[[m]]' disabled style="margin:auto">[[m]]</button> 
+                <button v-else class="btn btn-success" style="margin:auto"  :id='[[m]]' @click="newBooking([[n+9]],[[m]])" >[[m]]</button> 
 
               </div>
             </div>
@@ -50,6 +57,8 @@
   </div>
 
     {% comment %} Shifting div to show the avialble slots {% endcomment %}
+    {% csrf_token %}
+    <div method='post'>
     <div id="slotpick" class="container" style="display: none">
       <div class="flex row">
         <div v-for="(n,index) in {{data.tables}}" :key="index" class="col">
@@ -67,7 +76,9 @@
       </div>
     </div>
   </div>
-
+  </div>
+   </div>
+  </div>
 
   {% endblock body %} {% block script %}
   
@@ -77,12 +88,14 @@
       delimiters : ['[[',']]'],
       data: {
         date: "",
+        restaurantId:"",
         timeslots : {},
         slotsBooked : [],
         submit: false,
       },
 
       methods:{
+
          datepicked: function(){
           let today = new Date();
           var dd = String(today.getDate()).padStart(2, '0');
@@ -97,8 +110,6 @@
               if(date[1] >= mm){
                   if(date[0] >= dd){
                           date = `${date[0]}-${date[1]}-${date[2]}`
-                          console.log(date)
-                          this.timeslots = 
                           this.fetchTime(date)
                           this.submit = true
                       }
@@ -111,31 +122,71 @@
 
             },
 
+            // Function to Post new booking data to Django 
+            newBooking: function(table, timeSlot){
+
+              table = parseInt(table[0])
+              slot  = parseInt(timeSlot[0])
+
+              console.log(table,slot, this.date, this.restaurantId)
+
+              let $crf_token = $('[name="csrfmiddlewaretoken"]').attr('value');
+
+              data  = {
+                table       : table,
+                date        : this.date,
+                timeslot    : slot,
+                restaurant  : this.restaurantId,
+              }
+
+              fetch(`http://localhost:8000/restaurants/booking/`, {
+                  method: 'POST',
+                   headers : new Headers({'content-type' : 'application/json',
+                            'Access-Control-Allow-Origin': "*",
+                            'Access-Control-Allow-Headers' : "*",
+                            "X-CSRFToken": $crf_token,
+                  }),
+
+                  body: JSON.stringify(data),
+                })
+                .then(response => response.json())
+                .then(data => {
+                  console.log('Success:', data);
+                })
+                .catch((error) => {
+                  console.error('Error:', error);
+                });
+
+
+            },
+
+              // Function to GET data from the django API
               async fetchTime(date){
-              $( "#btn-warn" ).remove();
+    
+                  $( "#btn-warn" ).remove();
 
-                restaurent = {{data.id}};
+                  this.restaurantId = {{data.id}};
+                  this.timeslots ={};
+                  this.slotsBooked = [];
 
-                  const res = await fetch(`http://localhost:8000/restaurants/timeslot/${date}/${restaurent}`);
+                  const res = await fetch(`http://localhost:8000/restaurants/timeslot/${date}/${this.restaurantId}`);
                   const data = await res.json();
-
-                  this.timeslots ={}
-
+                  
                   for (const obj in data){
-                      if (this.timeslots[data[obj].time__time_slots]){
-                          this.timeslots[data[obj].time__time_slots].push(data[obj].table)
+                    console.log(data[obj])
+
+                      if (this.timeslots[data[obj].slots]){
+                          this.timeslots[data[obj].slots].push(data[obj].table)
                       }
                       else{
-                          this.timeslots[data[obj].time__time_slots] = [(data[obj].table)]
-                          this.slotsBooked.push(data[obj].time__time_slots)
+                          this.timeslots[data[obj].slots] = [(data[obj].table)]
+                          this.slotsBooked.push(data[obj].slots)
+
                       }
                   }
 
-                for(const slots in this.timeslots){
-                  console.log(this.timeslots[slots])
-                } console.log(this.slotsBooked)
-            }   
-      }
+               }   
+            }
 
     });
   </script>

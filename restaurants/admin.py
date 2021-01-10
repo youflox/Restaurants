@@ -18,12 +18,12 @@ class TableAdmin(admin.ModelAdmin):
 
 @admin.register(TimeSlotsModel)
 class TimeSlotAdmin(admin.ModelAdmin):
-    list_display = ['id', 'time_slots', 'date']
+    list_display = ['id', 'slots', 'date']
     
 
 @admin.register(DateModel)
 class DateAdmin(admin.ModelAdmin):
-    list_display =['id', 'date', 'user', 'restaurant_date']
+    list_display =['id', 'date', 'user', 'restaurant']
 
 
 @admin.register(RatingModel)

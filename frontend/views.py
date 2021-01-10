@@ -11,11 +11,7 @@ def restaurent_view(request):
 
 
 def booking_view(request,id):
-    queryset = RestaurantModel.objects.all()
-    resta    = get_object_or_404(queryset, id=id)
-   
+    resta = RestaurantModel.objects.filter(id=id).first()
+
     ctx = {'data' : resta}
-
-    print(ctx['data'].id)
-
     return render(request, 'booking_view.html', ctx)
