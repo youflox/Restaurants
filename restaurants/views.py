@@ -68,7 +68,6 @@ class Ratings(APIView):
 
 
 
-#  Using This To Render Slots and Table data in Vue
 class TimeSlotsView(APIView):
     serializer_class = TimeSlotsSeializer
 
@@ -86,6 +85,27 @@ class TimeSlotsView(APIView):
         else:
             data = {'Response' : 'No records found'}
         return Response(data)
+
+
+
+#  Using This To Render Slots and Table data in Vue
+# class TimeSlotsView(APIView):
+#     serializer_class = TimeSlotsSeializer
+
+#     def get(self, request, date, restaurent):
+#         date = DateModel.objects.filter(
+#             Q(date=date) &
+#             Q(restaurant = restaurent)
+#         ).values_list('id', flat=True)
+       
+#         if date:
+#             query = TablesModel.objects.select_related('time', 'time__date').values('time', 'time__date').filter(time__date__in=date).values('table', slots=F('time__slots'))    
+#             # query = TablesModel.objects.all().prefetch_related('time').filter(time__date=date.id).values('table', slots=F('time__slots'))          
+#             serializer  = self.serializer_class(query, many=True)
+#             data = serializer.data        
+#         else:
+#             data = {'Response' : 'No records found'}
+#         return Response(data)
 
 class TablesView(APIView):
     """

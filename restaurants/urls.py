@@ -6,6 +6,7 @@ from .views import (
     RestaurentRegisterView, 
     Ratings, 
     TimeSlotsView,
+
     TablesView,
     NewBooking
 )
@@ -15,9 +16,16 @@ urlpatterns = [
     path('<int:pk>/', RestaurantView.as_view()),
 
     path('register/', RestaurentRegisterView.as_view()),
+    
+    path('<int:restaurent>/<str:date>/', TimeSlotsView.as_view()),
+    path('<int:restaurent>/<str:date>/<int:time>/', TablesView.as_view()), 
+
+
     path('ratings/', Ratings.as_view()),
-    path('timeslot/<str:date>/<int:restaurent>/', TimeSlotsView.as_view()),
-    path('timeslot/<str:date>/<int:restaurent>/<int:time>/', TablesView.as_view()), 
+
+
+    # path('timeslot/<str:date>/<int:restaurent>/', TimeSlotsView.as_view()),
+    # path('timeslot/<str:date>/<int:restaurent>/<int:time>/', TablesView.as_view()), 
     
     path('booking/', NewBooking.as_view()), 
 

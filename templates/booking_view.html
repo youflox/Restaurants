@@ -29,7 +29,7 @@
             {% endif %}
           </div>
         </div>
-        <div class="d-flex justify-content-center">
+        <div class="d-flex justify-content-center my-5">
           <!-- Date input -->
           <label class="control-label my-auto" for="date"> <strong>Date</strong></label>
           <input
@@ -40,24 +40,29 @@
             type="text"
             v-model="date"
           />
-          <input id="datesubmit" type="submit" @click="datepicked" />
+          <input id="datesubmit" type="submit" @click="datepicked"/>
         </div>
+
+        [[submit]]
+        [[slotsBooked]]
+        [[timeslots]]
       </div>
         <div class='container'>
 
           <div class="col-10">
             <div v-if="submit">
-              <div v-for="(n,index) in 12" :key="index" class='row bg-dark my-3' >
-                <button class="col-3 my-3 btn btn-danger" disabled :id="[[9+n]]" > [[n+9]] - [[n+10]]</button>
+
+              <div v-for="(n,index) in 12" :key="index" class='row bg-dark my-3'>
+                <button class="col-2 my-3 mx-2 btn btn-primary" disabled :id="[[9+n]]" > [[n+9]] - [[n+10]]</button>
                 
                 <div v-for="(m,index1) in {{data.tables}}" :key="index1" class='col mx-0.5 my-auto'>
                 <button v-if="(slotsBooked.includes(n+9)) && (timeslots[n+9].includes(m))" class="btn btn-danger" :id='[[m]]' disabled style="margin:auto">[[m]]</button> 
-                <button v-else class="btn btn-success" style="margin:auto"  :id='[[m]]' @click="newBooking([[m]],[[n+9]])" >[[m]]</button> 
+                <button v-else class="btn btn-info" style="margin:auto"  :id='[[m]]' @click="newBooking([[m]],[[n+9]])" >[[m]]</button> 
 
               </div>
             </div>
-          </div>
-        </div>
+          </h3>
+        </h3>
   </div>
 
     {% comment %} Shifting div to show the avialble slots {% endcomment %}
@@ -166,9 +171,11 @@
                     console.error('Error:', error);
                   });
 
+                  console.log(this.timeslots)
                   this.datepicked()
+                  console.log(this.timeslots)
 
-                      }
+                  }
                 }
                 else{
                   this.loginRequired()
@@ -189,10 +196,11 @@
                   this.slotsBooked = [];
 
 
-                  const res = await fetch(`http://localhost:8000/restaurants/timeslot/${date}/${this.restaurantId}`);
+                  const res = await fetch(`http://localhost:8000/restaurants/${this.restaurantId}/${date}/`);
                   const data = await res.json();
                   
                   for (const obj in data){
+
 
                       if (this.timeslots[data[obj].slots]){
                           this.timeslots[data[obj].slots].push(data[obj].table)
@@ -203,7 +211,6 @@
 
                       }
                   }
-
                }   
             }
 
