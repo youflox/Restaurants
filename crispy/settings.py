@@ -122,6 +122,8 @@ USE_TZ = True
 
 
 LOGIN_URL='http://localhost:8000/login/'
+# LOGIN_REDIRECT_URL = 'http://localhost:8000/frontend/booking/2/'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/

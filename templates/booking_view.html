@@ -20,14 +20,20 @@
             <h5 class="card-title my-3">{{data.name}}</h5>
             <p class="card-text">Category : {{data.category}}</p>
             <p class="card-text">Avg price : {{data.price}} /-</p>
-            <p class="card-text">Avg ratings : {{data.ratings}}</p>
+            <p class="card-text">Avg ratings : {{data.ratings}}</p>          
+            {% if request.user.is_authenticated %}
+              <p class="card-text">User : <strong>{{user}}</strong></p>
+              <button class="btn btn-warning" onclick="location.href='http://localhost:8000/logout/?next=http://localhost:8000/frontend/'">Lougout</button>
+            {% else %}
+              <button class="btn btn-info col-3 mx-auto d-flex justify-content-center" @click="loginRequired">Login</button>
+            {% endif %}
           </div>
         </div>
-        <div class="form-group mx-sm-3 mb-2">
+        <div class="d-flex justify-content-center">
           <!-- Date input -->
-          <label class="control-label" for="date">Date</label>
+          <label class="control-label my-auto" for="date"> <strong>Date</strong></label>
           <input
-            class="col-8 mx-4 my-auto"
+            class="col-4 mx-3"
             id="date"
             name="date"
             placeholder="DD-MM-YYYY"
@@ -85,6 +91,8 @@
       delimiters : ['[[',']]'],
       data: {
         date: "",
+        name :"sd",
+        username : "{{user}}",
         restaurantId:"",
         timeslots : {},
         slotsBooked : [],
@@ -122,7 +130,7 @@
             // Function to Post new booking data to Django 
             newBooking: function(table, timeSlot){
 
-             
+             if(this.username){
 
               var booking = window.confirm("Would like to conifrm the booking?");
 
@@ -131,7 +139,6 @@
                 table = parseInt(table[0])
                 slot  = parseInt(timeSlot[0])
 
-                console.log(table,slot, this.date, this.restaurantId)
 
                 let $crf_token = $('[name="csrfmiddlewaretoken"]').attr('value');
 
@@ -141,7 +148,6 @@
                   slots       : slot,
                   restaurant  : this.restaurantId,
                 }
-                console.log(data)
                 fetch(`http://localhost:8000/restaurants/booking/`, {
                     method: 'POST',
                     headers : new Headers({'content-type' : 'application/json',
@@ -154,7 +160,7 @@
                   })
                   .then(response => response.json())
                   .then(data => {
-                    console.log('Success:', data);
+                    console.log('Response:', 'Success');
                   })
                   .catch((error) => {
                     console.error('Error:', error);
@@ -163,11 +169,16 @@
                   this.datepicked()
 
                       }
-              else {
-                  console.log('canceled')
-              }
+                }
+                else{
+                  this.loginRequired()
+                }
             },
 
+              loginRequired(){
+                  window.location.href=`http://localhost:8000/login/?next={{ request.get_full_path|urlencode }}`
+              },
+              
               // Function to GET data from the django API
               async fetchTime(date){
     
@@ -177,13 +188,11 @@
                   this.timeslots ={};
                   this.slotsBooked = [];
 
-                  console.log(this.restaurantId)
 
                   const res = await fetch(`http://localhost:8000/restaurants/timeslot/${date}/${this.restaurantId}`);
                   const data = await res.json();
                   
                   for (const obj in data){
-                    console.log(data[obj])
 
                       if (this.timeslots[data[obj].slots]){
                           this.timeslots[data[obj].slots].push(data[obj].table)

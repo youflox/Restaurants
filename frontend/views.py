@@ -12,6 +12,8 @@ def restaurent_view(request):
 
 def booking_view(request,id):
     resta = RestaurantModel.objects.filter(id=id).first()
+    user  = request.user.username
 
-    ctx = {'data' : resta}
+    ctx = {'data' : resta, 'user' : user}
+    
     return render(request, 'booking_view.html', ctx)
